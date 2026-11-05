@@ -1,0 +1,89 @@
+/* Лендинг конкурса «Корпоративная история».
+   Переменные, шапка, hero, кнопки и подвал берутся из ../assets/styles.css. */
+
+.k-title { font-size: var(--step-4); max-width: 14ch; }
+
+.k-actions { display: flex; flex-wrap: wrap; gap: .8rem; margin: 1.6rem 0 0; }
+.k-actions .btn { display: inline-block; }
+
+/* ---------- статус ---------- */
+.k-status {
+  display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1rem;
+  padding: .7rem 1.1rem;
+  background: var(--night-soft); border: 1px solid var(--line);
+  border-radius: 4px 4px 16px 16px;
+}
+.k-status__label { font-family: "Unbounded", sans-serif; font-weight: 600; font-size: var(--step-1); }
+.k-status__date { color: var(--dim); font-size: .9rem; }
+.k-status[data-phase="register"] { border-color: var(--cyan); }
+.k-status[data-phase="vote"] { border-color: var(--gold); }
+
+/* ---------- секции ---------- */
+.k-section { max-width: var(--wrap); margin: 0 auto; padding: 3rem 1.5rem; border-top: 1px solid var(--line); }
+.k-h2 { font-size: var(--step-2); letter-spacing: -.03em; margin-bottom: 1.6rem; }
+.k-note { max-width: 66ch; color: var(--dim); font-size: .88rem; margin: 1.4rem 0 0; }
+.k-note a { color: var(--gold); }
+
+/* ---------- шаги ---------- */
+.k-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+@media (min-width: 40rem) { .k-steps { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 62rem) { .k-steps { grid-template-columns: repeat(4, 1fr); } }
+.k-steps li {
+  padding: 1.2rem 1.2rem 1.4rem;
+  background: var(--night); border: 1px solid var(--line);
+  border-radius: 4px 4px 16px 16px;
+}
+.k-steps b { display: block; font-family: "Unbounded", sans-serif; font-weight: 600; font-size: 1rem; margin-bottom: .5rem; }
+.k-steps p { margin: 0; color: #ded0e4; font-size: .92rem; }
+.k-steps strong { color: var(--gold); }
+
+/* ---------- сроки ---------- */
+.k-timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.k-timeline li {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: .3rem 1rem;
+  padding: .85rem 1.1rem;
+  border: 1px solid var(--line); border-radius: 4px 4px 12px 12px;
+}
+.k-timeline li span:last-child { font-weight: 600; }
+.k-timeline li[data-state="past"] { opacity: .5; }
+.k-timeline li[data-state="now"] { border-color: var(--gold); background: var(--night-soft); }
+
+/* ---------- призы ---------- */
+.k-prizes { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+@media (min-width: 52rem) { .k-prizes { grid-template-columns: 1.4fr 1fr 1fr; } }
+.k-prize {
+  display: flex; flex-direction: column; gap: .35rem;
+  padding: 1.3rem 1.3rem 1.5rem;
+  background: var(--night); border: 1px solid var(--line);
+  border-radius: 4px 4px 16px 16px;
+}
+.k-prize--first { background: linear-gradient(175deg, var(--brand) 0%, #4d0d42 100%); border-color: var(--brand-lift); }
+.k-prize__place { color: var(--gold); font-size: .85rem; font-weight: 600; }
+.k-prize__title { font-family: "Unbounded", sans-serif; font-weight: 600; font-size: var(--step-1); line-height: 1.2; }
+.k-prize__sum { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: var(--step-2); letter-spacing: -.03em; }
+.k-prize p { margin: .3rem 0 0; color: #ded0e4; font-size: .9rem; }
+
+/* ---------- баллы ---------- */
+.k-calc { max-width: 40rem; border: 1px solid var(--line); border-radius: 4px 4px 16px 16px; overflow: hidden; }
+.k-calc__row { display: flex; justify-content: space-between; gap: 1rem; padding: .95rem 1.2rem; border-bottom: 1px solid var(--line); }
+.k-calc__row:last-child { border-bottom: 0; }
+.k-calc__row b { font-family: "Unbounded", sans-serif; font-weight: 600; white-space: nowrap; }
+.k-calc__row--sum { background: var(--night-soft); }
+
+/* ---------- регистрация ---------- */
+.k-register { background: var(--night); max-width: none; }
+.k-register > * { max-width: calc(var(--wrap) - 3rem); margin-inline: auto; }
+.k-register__lead { color: #ded0e4; margin-top: 0; }
+.k-register .k-actions { margin-top: 1.2rem; }
+.k-btn-vk { background: #0077ff; color: #fff; }
+.k-btn-vk:hover { background: #3d95ff; }
+.k-btn-sber { background: #21a038; color: #fff; }
+.k-btn-sber:hover { background: #3dbb55; }
+.btn[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+
+/* ---------- FAQ ---------- */
+.k-faq { display: grid; gap: .6rem; max-width: 52rem; }
+.k-faq details { border: 1px solid var(--line); border-radius: 4px 4px 12px 12px; background: var(--night-soft); }
+.k-faq summary { cursor: pointer; padding: .95rem 1.2rem; font-weight: 600; }
+.k-faq details[open] summary { color: var(--gold); }
+.k-faq p { margin: 0; padding: 0 1.2rem 1.1rem; color: #ded0e4; font-size: .95rem; }

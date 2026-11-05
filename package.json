@@ -1,0 +1,10 @@
+{
+  "name": "konkurs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Лендинг конкурса «Корпоративная история» — Феерия.ру",
+  "type": "module",
+  "scripts": {
+    "start": "npx --yes serve . -l 5173"
+  }
+}

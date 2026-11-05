@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Конкурс «Корпоративная история» — призы от Феерия.ру</title>
+<meta name="description" content="Расскажите историю вашей команды, соберите голоса и выиграйте подарочный набор Феерия.ру. Регистрация с 11 по 25 ноября, голосование с 26 ноября по 5 декабря.">
+<meta name="theme-color" content="#80166e">
+<meta property="og:title" content="Конкурс «Корпоративная история» — Феерия.ру">
+<meta property="og:description" content="Регистрируйте компанию, делитесь ссылкой и собирайте голоса. Главный приз — подарочный набор на 200 000 ₽.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css?v=6">
+<link rel="stylesheet" href="konkurs.css?v=1">
+</head>
+<body>
+
+<header class="top">
+  <a class="top__brand" href="https://www.feeriya.ru/" data-track="header-logo">Феерия<span>.ру</span></a>
+  <div class="top__side">
+    <a class="top__tel" href="tel:+74959263113" data-track="header-phone">
+      +7 495 926-31-13
+      <em>10:00–19:00, без выходных</em>
+    </a>
+  </div>
+</header>
+
+<main>
+
+<!-- ---------- герой ---------- -->
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__kicker">Конкурс для компаний и команд</p>
+    <h1 class="hero__title k-title">Корпоративная история</h1>
+    <p class="hero__lead">
+      Расскажите, чем живёт ваша команда, и соберите голоса коллег, клиентов и друзей.
+      Три компании с наибольшим числом баллов получат призы от Феерия.ру.
+    </p>
+
+    <div class="k-status" id="status" role="status" aria-live="polite">
+      <span class="k-status__label" id="statusLabel"></span>
+      <span class="k-status__date" id="statusDate"></span>
+    </div>
+
+    <div class="k-actions">
+      <a class="btn btn--primary" id="ctaMain" href="#register" data-track="k-cta-main">Зарегистрировать компанию</a>
+      <a class="btn btn--ghost" href="#rules" data-track="k-cta-rules">Правила конкурса</a>
+    </div>
+  </div>
+
+  <div class="sky" aria-hidden="true">
+    <span class="burst burst--1"></span>
+    <span class="burst burst--2"></span>
+    <span class="burst burst--3"></span>
+  </div>
+</section>
+
+<!-- ---------- как это работает ---------- -->
+<section class="k-section" id="how">
+  <h2 class="k-h2">Как это работает</h2>
+  <ol class="k-steps">
+    <li>
+      <b>1. Регистрация капитана</b>
+      <p>Входите через VK ID или Сбер ID, заполняете короткую анкету: название, город, рассказ о компании. Контакты видим только мы.</p>
+    </li>
+    <li>
+      <b>2. Личная ссылка</b>
+      <p>После проверки получаете ссылку на карточку компании. Делитесь ею с командой, клиентами и друзьями.</p>
+    </li>
+    <li>
+      <b>3. Видео до 60 секунд</b>
+      <p>Загрузите видео «почему мы должны выиграть» — и получите <strong>500 баллов</strong> как за 50 голосов.</p>
+    </li>
+    <li>
+      <b>4. Голосование</b>
+      <p>Голосование стартует у всех одновременно после закрытия регистрации и длится 10 дней. <strong>1 голос = 10 баллов</strong>.</p>
+    </li>
+  </ol>
+</section>
+
+<!-- ---------- сроки ---------- -->
+<section class="k-section" id="dates">
+  <h2 class="k-h2">Сроки</h2>
+  <ol class="k-timeline" id="timeline"></ol>
+  <p class="k-note">Время московское. Даты итогов и вручения могут быть уточнены в Положении о конкурсе.</p>
+</section>
+
+<!-- ---------- призы ---------- -->
+<section class="k-section" id="prizes">
+  <h2 class="k-h2">Призы</h2>
+  <ul class="k-prizes">
+    <li class="k-prize k-prize--first">
+      <span class="k-prize__place">1 место</span>
+      <b class="k-prize__title">Подарочный набор Феерия.ру</b>
+      <span class="k-prize__sum">на 200 000 ₽</span>
+      <p>Собираем сами под вашу компанию. Состав согласуем с победителем.</p>
+    </li>
+    <li class="k-prize">
+      <span class="k-prize__place">2 место</span>
+      <b class="k-prize__title">Приз уточняется</b>
+      <p>Состав и стоимость будут объявлены до старта регистрации.</p>
+    </li>
+    <li class="k-prize">
+      <span class="k-prize__place">3 место</span>
+      <b class="k-prize__title">Приз уточняется</b>
+      <p>Состав и стоимость будут объявлены до старта регистрации.</p>
+    </li>
+  </ul>
+  <p class="k-note">
+    Призы вручаются организациям. Денежная компенсация не предусмотрена.
+    Пиротехника передаётся только в соответствии с законом: сертифицированные изделия,
+    совершеннолетнему представителю, с учётом региональных ограничений.
+  </p>
+</section>
+
+<!-- ---------- баллы ---------- -->
+<section class="k-section" id="points">
+  <h2 class="k-h2">Как считаются баллы</h2>
+  <div class="k-calc">
+    <div class="k-calc__row"><span>1 голос</span><b>10 баллов</b></div>
+    <div class="k-calc__row"><span>Видео до 60 секунд в карточке (после модерации)</span><b>500 баллов</b></div>
+    <div class="k-calc__row k-calc__row--sum"><span>Итог</span><b>голоса × 10 + 500 за видео</b></div>
+  </div>
+  <p class="k-note">
+    Побеждают компании с наибольшей суммой баллов. При равенстве выигрывает та, которая раньше набрала итоговую сумму.
+    Голоса, полученные с помощью ботов, купленных аккаунтов и других способов накрутки, аннулируются, а заявка может быть дисквалифицирована.
+  </p>
+</section>
+
+<!-- ---------- регистрация ---------- -->
+<section class="k-section k-register" id="register">
+  <h2 class="k-h2">Регистрация капитана</h2>
+  <p class="k-register__lead" id="registerLead"></p>
+  <div class="k-actions">
+    <a class="btn btn--primary k-btn-vk" id="loginVk" href="#" data-track="k-login-vk">Войти через VK ID</a>
+    <a class="btn btn--primary k-btn-sber" id="loginSber" href="#" data-track="k-login-sber">Войти через Сбер ID</a>
+  </div>
+  <p class="k-note">
+    Регистрируясь, вы принимаете <a id="rulesLink" href="#rules">Положение о конкурсе</a>
+    и даёте согласие на обработку персональных данных. Контакты капитана не публикуются.
+  </p>
+</section>
+
+<!-- ---------- правила ---------- -->
+<section class="k-section" id="rules">
+  <h2 class="k-h2">Правила конкурса</h2>
+  <div class="k-faq">
+    <details>
+      <summary>Кто может участвовать</summary>
+      <p>Организации и индивидуальные предприниматели из РФ. Заявку подаёт капитан — представитель компании, который вправе действовать от её имени. От одной компании принимается одна заявка.</p>
+    </details>
+    <details>
+      <summary>Что нужно для регистрации</summary>
+      <p>Вход через VK ID или Сбер ID, название компании, город, краткий рассказ о ней, контакты капитана (видны только организатору) и согласия на обработку данных и публикацию материалов.</p>
+    </details>
+    <details>
+      <summary>Как проголосовать</summary>
+      <p>Откройте ссылку на карточку компании и нажмите «Проголосовать» во время голосования. Для голоса нужен вход через VK ID или Сбер ID. Участие бесплатное, покупать ничего не нужно.</p>
+    </details>
+    <details>
+      <summary>Сколько голосов можно отдать</summary>
+      <p id="voteLimit">Лимит голосов на одного человека будет указан в Положении о конкурсе.</p>
+    </details>
+    <details>
+      <summary>Требования к видео</summary>
+      <p>До 60 секунд, тема «почему мы должны выиграть». Нельзя показывать запуск пиротехники в помещении, с балкона или из окна, детей рядом с пиротехникой, опасные действия, чужую рекламу и музыку без прав. Бонус начисляется после проверки.</p>
+    </details>
+    <details>
+      <summary>Это лотерея?</summary>
+      <p>Нет. Победители определяются по числу баллов, а не жребием. Участие и голосование бесплатные.</p>
+    </details>
+    <details>
+      <summary>Что с моими данными</summary>
+      <p>От участников мы собираем только данные, нужные для конкурса. Контакты капитана видны только организатору. Имена и фото голосующих на сайте не показываются.</p>
+    </details>
+  </div>
+  <p class="k-note">Полный текст Положения будет опубликован на этой странице до начала регистрации.</p>
+</section>
+
+</main>
+
+<footer class="foot">
+  <p>Конкурс проводится ООО «ПОГНАЛИ ФЕЕРИТЬ». Реквизиты и Положение — в разделе «Правила конкурса».</p>
+  <p>Пиротехника продаётся лицам старше 18 лет. Вся продукция сертифицирована.</p>
+  <p><a href="https://www.feeriya.ru/" data-track="footer-home">Феерия.ру</a> · 1997–2026</p>
+</footer>
+
+<script src="konkurs.js?v=1" type="module"></script>
+</body>
+</html>
