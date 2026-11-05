@@ -1,6 +1,7 @@
-FROM node:22-alpine
-# ffprobe checks the length of uploaded videos
-RUN apk add --no-cache ffmpeg
+FROM node:22-bookworm-slim
+# ffmpeg converts uploaded videos (iPhone HEVC/HDR → H.264 MP4); Debian's build includes
+# zscale/tonemap for HDR. ffprobe checks the length.
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev

@@ -10,6 +10,7 @@ import { mkdir } from 'node:fs/promises';
 import { registerSessions } from './session.js';
 import { buildProviders } from './auth/providers.js';
 import { buildCaptcha } from './captcha.js';
+import { Transcoder } from './transcode.js';
 import { layout, simpleBody } from './views/layout.js';
 import authRoutes from './routes/auth.js';
 import publicRoutes from './routes/public.js';
@@ -41,6 +42,7 @@ export async function buildApp({ cfg, pool, now = () => new Date(), logger = tru
     pool,
     now,
     providers: buildProviders(cfg),
+    transcoder: new Transcoder({ cfg, pool, log: app.log }),
     captcha: buildCaptcha(cfg),
     // Wraps a page body in the shared layout.
     page(req, reply, { title, body, status, admin = false, head = '' }) {
@@ -61,6 +63,9 @@ export async function buildApp({ cfg, pool, now = () => new Date(), logger = tru
     reply.header('x-frame-options', 'DENY');
     return payload;
   });
+
+  app.decorate('transcoder', ctx.transcoder);
+  app.addHook('onClose', () => ctx.transcoder.stop());
 
   registerSessions(app, { pool, cfg });
 

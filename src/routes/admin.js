@@ -15,6 +15,7 @@ const COMPANY_FILTERS = {
 };
 const STATUS_RU = { pending: 'на проверке', approved: 'одобрена', rejected: 'отклонена', valid: 'засчитан', annulled: 'аннулирован' };
 const PAGE_SIZE = 200;
+const VIDEO_TABS = { pending: 'На проверке', processing: 'Обрабатываются', approved: 'Принятые', rejected: 'Отклонённые', failed: 'Не обработались' };
 
 // Return to the same filtered vote list; only a local path is ever used.
 function backToVotes(req) {
@@ -86,6 +87,7 @@ export default async function adminRoutes(app, { ctx }) {
       pending: await q("select count(*)::int n from companies where status = 'pending' and disqualified_at is null"),
       approved: await q("select count(*)::int n from companies where status = 'approved' and disqualified_at is null"),
       videos: await q("select count(*)::int n from videos where status = 'pending'"),
+      processing: await q("select count(*)::int n from videos where status = 'processing'"),
       votes: await q("select count(*)::int n from votes where status = 'valid'"),
       annulled: await q("select count(*)::int n from votes where status = 'annulled'"),
     };
@@ -94,6 +96,7 @@ export default async function adminRoutes(app, { ctx }) {
       <ul class="stats">
         <li><a href="/admin/companies?status=pending"><b>${stats.pending}</b> заявок на проверке</a></li>
         <li><a href="/admin/videos"><b>${stats.videos}</b> видео на проверке</a></li>
+        ${stats.processing ? html`<li><a href="/admin/videos?status=processing"><b>${stats.processing}</b> видео обрабатываются</a></li>` : ''}
         <li><a href="/admin/companies?status=approved"><b>${stats.approved}</b> компаний в конкурсе</a></li>
         <li><a href="/admin/votes"><b>${stats.votes}</b> голосов засчитано</a></li>
         <li><a href="/admin/votes?status=annulled"><b>${stats.annulled}</b> аннулировано</a></li>
@@ -197,18 +200,19 @@ export default async function adminRoutes(app, { ctx }) {
 
   // ---------- videos ----------
   app.get('/videos', async (req, reply) => {
-    const status = ['pending', 'approved', 'rejected'].includes(req.query.status) ? req.query.status : 'pending';
+    const status = Object.keys(VIDEO_TABS).includes(req.query.status) ? req.query.status : 'pending';
     const { rows } = await pool.query(
       `select v.*, c.name, c.city, c.id as company_id
          from videos v join companies c on c.id = v.company_id
         where v.status = $1 order by v.uploaded_at asc`, [status]);
     const body = html`<section class="k-section">
       <h1 class="k-h2">Видео</h1>
-      <nav class="tabs">${['pending', 'approved', 'rejected'].map((k) => html`<a href="?status=${k}" ${k === status ? html`aria-current="page"` : ''}>${{ pending: 'На проверке', approved: 'Принятые', rejected: 'Отклонённые' }[k]}</a>`)}</nav>
+      <nav class="tabs">${Object.entries(VIDEO_TABS).map(([k, label]) => html`<a href="?status=${k}" ${k === status ? html`aria-current="page"` : ''}>${label}</a>`)}</nav>
       <details class="k-note" open><summary>Требования к видео</summary><ul>${VIDEO_REQUIREMENTS.map((r) => html`<li>${r}</li>`)}</ul></details>
       ${rows.length === 0 ? html`<p>Пусто.</p>` : rows.map((v) => html`<article class="video-mod" id="v${v.id}">
         <h2 class="k-h2"><a href="/admin/companies/${v.company_id}">${v.name}</a> <span class="dim">${v.city}</span></h2>
-        <video controls preload="metadata" playsinline src="/media/video/${v.id}"></video>
+        ${['processing', 'failed'].includes(v.status) ? '' : html`<video controls preload="metadata" playsinline src="/media/video/${v.id}"></video>`}
+        ${v.processing_error ? html`<p class="notice notice--error">Ошибка обработки: <span class="mono">${v.processing_error}</span></p>` : ''}
         <p class="k-note">${v.duration_sec} с · ${(v.size_bytes / 1048576).toFixed(1)} МБ · загружено ${dateTime(v.uploaded_at)}
           ${v.reject_reason ? ` · причина отказа: ${v.reject_reason}` : ''}</p>
         ${v.status === 'pending' ? html`<div class="admin-actions">

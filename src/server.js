@@ -16,3 +16,5 @@ process.on('SIGTERM', close);
 process.on('SIGINT', close);
 
 await app.listen({ port: cfg.port, host: cfg.host });
+// Finish videos that were being converted when the server stopped.
+await app.transcoder.resume();

@@ -50,6 +50,11 @@ export function loadConfig(overrides = {}) {
       toleranceSeconds: num('VIDEO_TOLERANCE_SECONDS', 0.5),
       maxMegabytes: num('VIDEO_MAX_MB', 200),
       ffprobe: str('FFPROBE_PATH', 'ffprobe'),
+      ffmpeg: str('FFMPEG_PATH', 'ffmpeg'),
+      // Output: long side in pixels, parallel jobs, time limit per video.
+      maxSide: num('VIDEO_MAX_SIDE', 1280),
+      transcodeConcurrency: num('VIDEO_TRANSCODE_CONCURRENCY', 1),
+      transcodeTimeoutSeconds: num('VIDEO_TRANSCODE_TIMEOUT_SECONDS', 600),
     },
 
     // Links to documents approved by the lawyer. Empty = link is hidden.

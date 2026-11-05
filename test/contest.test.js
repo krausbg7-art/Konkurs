@@ -61,6 +61,7 @@ test('full contest flow', async (t) => {
     const ok = await cap.uploadVideo('short.mp4');
     assert.equal(ok.headers.location, '/my?ok=video');
     assert.match((await cap.uploadVideo('short.mp4')).body, /ещё на проверке/);
+    await app.transcoder.idle();
     const vids = (await pool.query('select * from videos')).rows;
     assert.equal(vids.length, 1);
     assert.equal(vids[0].status, 'pending');
@@ -274,4 +275,74 @@ test('tie-break: the company that reached its total earlier ranks higher', async
   await pool.query(`update votes set created_at = '2026-11-28T10:00:00.123457+03:00' where id = ${lastVote}`, [B]);
   rows = await ranking(pool, cfg.contest);
   assert.deepEqual(rows.slice(0, 2).map((r) => r.slug), ['ccc', 'bbb']);
+});
+
+test('iPhone video (HEVC, HDR, 60 fps, rotated, with GPS) is converted for every browser', async () => {
+  const { app, pool, setTime, cfg } = env;
+  const { execFileSync } = await import('node:child_process');
+  const path = await import('node:path');
+  const { existsSync, readdirSync } = await import('node:fs');
+  setTime(AT.registration);
+
+  const { cap } = await registerCompany('cap-iphone', { name: 'Айфон' });
+  const r = await cap.uploadVideo('iphone.mov');
+  assert.equal(r.headers.location, '/my?ok=video');
+
+  const before = (await pool.query("select v.* from videos v join companies c on c.id = v.company_id where c.name = 'Айфон'")).rows[0];
+  assert.equal(before.status, 'processing');
+  assert.match((await cap.get('/my')).body, /обрабатывается/);
+
+  await app.transcoder.idle();
+  const v = (await pool.query('select * from videos where id = $1', [before.id])).rows[0];
+  assert.equal(v.status, 'pending', v.processing_error);
+  assert.equal(v.mime, 'video/mp4');
+  assert.match(v.file_name, /\.mp4$/);
+  assert.ok(Math.abs(v.duration_sec - 3) < 0.2);
+  // original .mov is removed, the temp folder is clean
+  assert.ok(!existsSync(path.join(cfg.videoDir, before.file_name)));
+  assert.deepEqual(readdirSync(path.join(cfg.videoDir, 'tmp')), []);
+
+  const out = JSON.parse(execFileSync('ffprobe', ['-v', 'error', '-show_entries',
+    'stream=codec_name,pix_fmt,width,height,avg_frame_rate,color_transfer:stream_side_data=rotation:format_tags',
+    '-of', 'json', path.join(cfg.videoDir, v.file_name)]).toString());
+  const video = out.streams.find((s) => s.codec_name === 'h264');
+  assert.ok(video, 'H.264 stream');
+  assert.equal(video.pix_fmt, 'yuv420p');
+  assert.equal(video.color_transfer, 'bt709');
+  assert.ok(video.height > video.width, 'portrait after applying rotation');
+  assert.equal(eval(video.avg_frame_rate), 30);
+  assert.ok(!video.side_data_list, 'no rotation flag left');
+  assert.ok(out.streams.some((s) => s.codec_name === 'aac'), 'audio kept');
+  assert.equal(out.format.tags?.location, undefined, 'GPS location removed');
+
+  // moov atom at the start: playback starts before the whole file is downloaded
+  const { readFileSync } = await import('node:fs');
+  const bytes = readFileSync(path.join(cfg.videoDir, v.file_name));
+  const moov = bytes.indexOf('moov'), mdat = bytes.indexOf('mdat');
+  assert.ok(moov > 0 && mdat > 0 && moov < mdat, `moov ${moov} before mdat ${mdat}`);
+  assert.equal((await cap.get(`/media/video/${v.id}`)).headers['content-type'], 'video/mp4');
+});
+
+test('failed conversion is reported and a new upload is allowed', async () => {
+  const { app, pool, setTime, cfg } = env;
+  setTime(AT.registration);
+  const { cap, company: co } = await registerCompany('cap-broken', { name: 'Сломанный' });
+  const ffmpeg = cfg.video.ffmpeg;
+  cfg.video.ffmpeg = '/nonexistent/ffmpeg';
+  try {
+    await cap.uploadVideo('short.mp4');
+    await app.transcoder.idle();
+  } finally {
+    cfg.video.ffmpeg = ffmpeg;
+  }
+  const v = (await pool.query('select * from videos where company_id = $1', [co.id])).rows[0];
+  assert.equal(v.status, 'failed');
+  assert.ok(v.processing_error);
+  const page = (await cap.get('/my')).body;
+  assert.match(page, /Не получилось обработать/);
+  assert.match(page, /name="video"/); // upload form is back
+  const r = await cap.uploadVideo('short.mp4');
+  assert.equal(r.headers.location, '/my?ok=video');
+  await app.transcoder.idle();
+  assert.equal((await pool.query("select count(*)::int n from videos where company_id = $1 and status = 'pending'", [co.id])).rows[0].n, 1);
 });

@@ -38,7 +38,7 @@ const STATUS_TEXT = {
   approved: 'Заявка одобрена. Карточка опубликована.',
   rejected: 'Заявка отклонена.',
 };
-const VIDEO_STATUS = { pending: 'на проверке', approved: 'принято, начислено', rejected: 'отклонено' };
+const VIDEO_STATUS = { processing: 'обрабатывается', pending: 'на проверке', approved: 'принято, начислено', rejected: 'отклонено' };
 
 export default async function captainRoutes(app, { ctx }) {
   const { cfg, pool } = ctx;
@@ -74,8 +74,9 @@ export default async function captainRoutes(app, { ctx }) {
 
   function videoSection(req, company, videos) {
     const now = ctx.now();
-    const current = videos.find((v) => v.status === 'approved') || videos.find((v) => v.status === 'pending');
-    const lastRejected = !current && videos.find((v) => v.status === 'rejected');
+    const current = videos.find((v) => v.status === 'approved') || videos.find((v) => ['pending', 'processing'].includes(v.status));
+    // videos are sorted newest first
+    const lastProblem = !current && videos.find((v) => ['rejected', 'failed'].includes(v.status));
     const canUpload = !current && isVideoUploadOpen(c, now);
 
     return html`<section class="k-section">
@@ -84,9 +85,13 @@ export default async function captainRoutes(app, { ctx }) {
         <b>${c.videoBonus} баллов</b> (один раз).</p>
       <p class="k-note">Нельзя: запуск пиротехники в помещении, с балкона или из окна; дети рядом с пиротехникой;
         опасные действия; чужая реклама; музыка без прав.</p>
-      ${current ? html`<p class="notice">Видео ${VIDEO_STATUS[current.status]}${current.status === 'approved' ? ` +${c.videoBonus} баллов` : ''}.</p>
+      ${current?.status === 'processing'
+        ? html`<p class="notice">Видео загружено и обрабатывается: переводим его в формат, который открывается в любом браузере.
+            Потом оно уйдёт на проверку. Обновите страницу чуть позже.</p>`
+        : current ? html`<p class="notice">Видео ${VIDEO_STATUS[current.status]}${current.status === 'approved' ? ` +${c.videoBonus} баллов` : ''}.</p>
         <video class="company__video" controls preload="metadata" playsinline src="/media/video/${current.id}"></video>` : ''}
-      ${lastRejected ? html`<p class="notice notice--error">Видео отклонено: ${lastRejected.reject_reason}. Можно загрузить другое.</p>` : ''}
+      ${lastProblem?.status === 'rejected' ? html`<p class="notice notice--error">Видео отклонено: ${lastProblem.reject_reason}. Можно загрузить другое.</p>` : ''}
+      ${lastProblem?.status === 'failed' ? html`<p class="notice notice--error">Не получилось обработать видео. Попробуйте загрузить его ещё раз или сохранить в другом формате.</p>` : ''}
       ${canUpload
         ? html`<form method="post" action="/my/video?_csrf=${encodeURIComponent(csrfToken(req))}" enctype="multipart/form-data" class="form">
             <label>Файл (${ALLOWED_EXT.join(', ')}, до ${cfg.video.maxMegabytes} МБ)
@@ -147,7 +152,7 @@ export default async function captainRoutes(app, { ctx }) {
     return ctx.page(req, reply, { title: 'Кабинет капитана', body });
   }
 
-  app.get('/my', (req, reply) => cabinet(req, reply, { message: req.query.ok === 'video' ? 'Видео загружено и отправлено на проверку.' : null }));
+  app.get('/my', (req, reply) => cabinet(req, reply, { message: req.query.ok === 'video' ? 'Видео загружено.' : null }));
 
   app.post('/my/company', async (req, reply) => {
     if (!checkCsrf(req, req.body?._csrf)) return reply.code(403).send('Bad CSRF token');
@@ -226,12 +231,14 @@ export default async function captainRoutes(app, { ctx }) {
     let inserted = 0;
     try {
       const r = await pool.query(
-        `insert into videos (company_id, file_name, mime, size_bytes, duration_sec)
-         select $1, $2, $3, $4, $5
-          where not exists (select 1 from videos where company_id = $1 and status = 'approved')`,
+        `insert into videos (company_id, file_name, mime, size_bytes, duration_sec, status)
+         select $1, $2, $3, $4, $5, 'processing'
+          where not exists (select 1 from videos where company_id = $1 and status = 'approved')
+         returning id`,
         [company.id, finalName, file.mimetype, size, info.duration.toFixed(2)],
       );
       inserted = r.rowCount;
+      if (inserted) ctx.transcoder.enqueue(r.rows[0].id);
     } catch (err) {
       if (err.code !== '23505') { await unlink(finalPath).catch(() => {}); throw err; }
     }
