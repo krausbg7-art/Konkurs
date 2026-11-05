@@ -2,9 +2,24 @@
   "name": "konkurs",
   "version": "1.0.0",
   "private": true,
-  "description": "Лендинг конкурса «Корпоративная история» — Феерия.ру",
+  "description": "Конкурс «Битва компаний за салют» — Феерия.ру: лендинг и сервис регистрации и голосования",
   "type": "module",
   "scripts": {
-    "start": "npx --yes serve . -l 5173"
+    "start": "node src/server.js",
+    "dev": "DEV_LOGIN=1 node --watch src/server.js",
+    "admin:create": "node src/cli/create-admin.js",
+    "test": "node --test --test-concurrency=1 --test-timeout=60000 test/*.test.js",
+    "static": "npx --yes serve . -l 5173"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.5",
+    "@fastify/formbody": "^9.0.1",
+    "@fastify/multipart": "^10.1.7",
+    "@fastify/static": "^10.1.10",
+    "fastify": "^5.12.8",
+    "pg": "^8.23.1"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

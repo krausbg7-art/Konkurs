@@ -1,0 +1,93 @@
+/* Service pages (gallery, company card, cabinet, admin). Variables come from styles.css. */
+
+.app-main { min-height: 60vh; }
+.app-nav { gap: 1rem; font-size: .92rem; }
+.app-nav a { text-decoration: none; color: var(--dim); }
+.app-nav a:hover { color: #fff; }
+.app-nav form { margin: 0; }
+.linklike { background: none; border: 0; padding: 0; color: var(--dim); font: inherit; cursor: pointer; }
+.linklike:hover { color: #fff; }
+
+.narrow { max-width: 44rem; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86em; word-break: break-all; }
+.dim { color: var(--dim); }
+.pre { white-space: pre-wrap; }
+
+.notice { padding: .8rem 1rem; border: 1px solid var(--line); border-left: 3px solid var(--cyan); background: var(--night-soft); border-radius: 4px; }
+.notice--error { border-left-color: var(--rose); }
+
+/* ---------- forms ---------- */
+.form { display: grid; gap: 1rem; max-width: 36rem; }
+.form label { display: grid; gap: .35rem; font-weight: 500; }
+.form input:not([type="checkbox"]), .form textarea, .form select,
+.filters input, .filters select, .inline-form input, .admin-actions input {
+  font: inherit; color: #fff; background: #ffffff0d; border: 1px solid var(--line); border-radius: 6px; padding: .6rem .75rem;
+}
+.form textarea { resize: vertical; }
+.form input:focus, .form textarea:focus { border-color: var(--gold); outline: none; }
+.form__private { border: 1px dashed var(--line); border-radius: 8px; padding: .8rem 1rem 1rem; display: grid; gap: 1rem; }
+.form__private legend { color: var(--dim); font-size: .86rem; padding: 0 .3rem; }
+.check { display: flex !important; grid-template-columns: none; gap: .6rem !important; align-items: flex-start; font-weight: 400 !important; }
+.check input { margin-top: .35rem; }
+.hint { color: var(--dim); font-size: .82rem; font-weight: 400; }
+.field-error { color: var(--rose); font-size: .82rem; font-weight: 400; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn--danger { background: var(--rose); color: #2a0010; }
+
+/* ---------- gallery ---------- */
+.gallery { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+@media (min-width: 44rem) { .gallery { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 68rem) { .gallery { grid-template-columns: repeat(3, 1fr); } }
+.gallery__item a {
+  display: grid; gap: .4rem; height: 100%; padding: 1.2rem; text-decoration: none;
+  border: 1px solid var(--line); border-radius: 4px 4px 16px 16px; background: var(--night-soft);
+}
+.gallery__item a:hover { border-color: var(--brand-lift); }
+.gallery__name { font-family: "Unbounded", sans-serif; font-weight: 600; font-size: var(--step-1); line-height: 1.2; }
+.gallery__city { color: var(--gold); font-size: .85rem; }
+.gallery__story { color: #ded0e4; font-size: .9rem; }
+.tag { justify-self: start; font-size: .75rem; padding: .15rem .5rem; border: 1px solid var(--cyan); border-radius: 99px; color: var(--cyan); }
+
+/* ---------- company card ---------- */
+.company__name { font-size: var(--step-3); }
+.company__video { width: 100%; max-width: 40rem; max-height: 70vh; background: #000; border-radius: 8px; margin: .5rem 0 1rem; display: block; }
+.company__story { max-width: 62ch; color: #ded0e4; }
+.vote { margin-top: 1.6rem; padding: 1.2rem; border: 1px solid var(--gold); border-radius: 4px 4px 16px 16px; background: var(--night-soft); max-width: 40rem; }
+.share { font-size: 1rem; color: var(--gold); }
+
+/* ---------- tables ---------- */
+.table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.table th, .table td { text-align: left; padding: .6rem .5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+.table th { color: var(--dim); font-weight: 500; font-size: .82rem; }
+.table--dense { font-size: .82rem; }
+.table--dense td { padding: .4rem .4rem; }
+.table .is-annulled td { opacity: .5; text-decoration: line-through; }
+.table .is-annulled td:first-child, .table .is-annulled td:last-child { text-decoration: none; }
+.table .is-winner td { background: #f2b44114; }
+.ua { max-width: 22rem; overflow-wrap: anywhere; color: var(--dim); }
+@media (max-width: 44rem) { .table { display: block; overflow-x: auto; } }
+
+.winners { list-style: none; padding: 0; display: grid; gap: .6rem; margin-bottom: 2rem; }
+.winners li { padding: 1rem 1.2rem; border: 1px solid var(--gold); border-radius: 4px 4px 16px 16px; }
+.winners__place { color: var(--gold); font-weight: 600; margin-right: .6rem; }
+
+/* ---------- admin ---------- */
+.admin .k-section { max-width: 90rem; }
+.tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1.2rem; }
+.tabs a { padding: .35rem .8rem; border: 1px solid var(--line); border-radius: 99px; text-decoration: none; font-size: .88rem; }
+.tabs a[aria-current="page"] { background: #fff; color: var(--ink); }
+.stats { list-style: none; padding: 0; display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+.stats a { display: block; padding: 1rem; border: 1px solid var(--line); border-radius: 8px; text-decoration: none; }
+.stats b { display: block; font-family: "Unbounded", sans-serif; font-size: var(--step-2); }
+.dl { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1.2rem; }
+.dl dt { color: var(--dim); }
+.dl dd { margin: 0; }
+.admin-actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; margin: 1.4rem 0; }
+.admin-actions form { margin: 0; }
+.inline-form { display: flex; flex-wrap: wrap; gap: .5rem; }
+.inline-form input { min-width: 18rem; }
+.filters { display: flex; flex-wrap: wrap; gap: .8rem; align-items: end; margin-bottom: 1.4rem; }
+.filters label { display: grid; gap: .25rem; font-size: .82rem; color: var(--dim); }
+.signals { border: 1px solid var(--gold); border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 1.4rem; }
+.video-mod { border-top: 1px solid var(--line); padding: 1.4rem 0; }
+.video-mod video { width: 100%; max-width: 32rem; max-height: 60vh; background: #000; border-radius: 8px; }
