@@ -1,6 +1,7 @@
-/* Лендинг конкурса «Корпоративная история».
-   Статическая страница: показывает этап, сроки и кнопки входа.
-   Регистрация, карточки и голосование — на отдельном сервисе (см. CONFIG.endpoints). */
+/* Лендинг конкурса «Битва компаний за салют».
+   Показывает этап, сроки и кнопки входа. Регистрация, карточки и голосование —
+   на сервисе конкурса (src/). Если страница открыта с того же сервиса, даты и
+   включённые способы входа приходят из /api/contest; CONFIG ниже — запасные значения. */
 
 const METRIKA_ID = 20920177;
 
@@ -13,16 +14,37 @@ const CONFIG = {
   resultsDate:       '2026-12-09T12:00:00+03:00',
   prizesBy:          '2026-12-25T23:59:59+03:00',
 
-  /* Адреса сервиса регистрации и голосования. Пока пусто — кнопки неактивны. */
+  /* Адрес сервиса конкурса. Пусто — тот же сайт, что и эта страница.
+     Если лендинг лежит на другом домене, укажите, например, 'https://konkurs.feeriya.ru'. */
+  serviceUrl: '',
+
+  /* Адреса сервиса. Пустой адрес входа — кнопка неактивна. Сервис сам отдаёт пустой адрес,
+     пока для VK ID или Сбер ID не заданы ключи. */
   endpoints: {
-    loginVk:   '',   // например https://vote.example.ru/auth/vk
-    loginSber: '',   // например https://vote.example.ru/auth/sber
+    loginVk:   '/login/vk?next=/my',
+    loginSber: '/login/sber?next=/my',
+    gallery:   '/companies',
+    rating:    '/rating',
     rules:     ''    // ссылка на опубликованное Положение (если отдельным документом)
   },
 
-  /* Показать формулировку лимита голосов, когда решение принято. */
-  voteLimitText: ''
+  voteLimitText: 'Один голос на человека за весь конкурс — за одну компанию. Голосовать можно через VK ID или Сбер ID; для голоса нужен подтверждённый номер телефона в аккаунте. Повторный голос с тем же номером через другой сервис не засчитывается.'
 };
+
+const url = (path) => (path && /^https?:/.test(path) ? path : path ? CONFIG.serviceUrl + path : '');
+
+/* Подтянуть даты и включённые способы входа с сервиса. */
+async function loadServiceConfig() {
+  try {
+    const r = await fetch(url('/api/contest'), { headers: { accept: 'application/json' } });
+    if (!r.ok) return;
+    const s = await r.json();
+    for (const k of ['registrationStart', 'registrationEnd', 'votingStart', 'votingEnd', 'resultsDate', 'prizesBy']) {
+      if (s[k]) CONFIG[k] = s[k];
+    }
+    if (s.endpoints) Object.assign(CONFIG.endpoints, Object.fromEntries(Object.entries(s.endpoints).filter(([k, v]) => v || k.startsWith('login'))));
+  } catch { /* лендинг открыт без сервиса — работаем на значениях из CONFIG */ }
+}
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -101,13 +123,13 @@ function renderTimeline(p) {
 }
 
 function setupButtons(p) {
-  const { loginVk, loginSber, rules } = CONFIG.endpoints;
+  const { loginVk, loginSber, rules, gallery, rating } = CONFIG.endpoints;
   const canRegister = p === 'register';
 
-  [['loginVk', loginVk], ['loginSber', loginSber]].forEach(([id, url]) => {
+  [['loginVk', loginVk], ['loginSber', loginSber]].forEach(([id, link]) => {
     const a = $(id);
-    if (canRegister && url) {
-      a.href = url;
+    if (canRegister && link) {
+      a.href = url(link);
       a.removeAttribute('aria-disabled');
     } else {
       a.href = '#register';
@@ -116,16 +138,30 @@ function setupButtons(p) {
   });
 
   const main = $('ctaMain');
-  if (!canRegister) {
+  if (p === 'vote' && gallery) {
+    main.textContent = 'Выбрать компанию и проголосовать';
+    main.href = url(gallery);
+  } else if ((p === 'count' || p === 'done') && rating) {
+    main.textContent = 'Смотреть рейтинг';
+    main.href = url(rating);
+  } else if (!canRegister) {
     main.textContent = p === 'soon' ? 'Узнать условия' : 'Как это работает';
     main.setAttribute('href', '#how');
+  }
+
+  const links = $('serviceLinks');
+  if (links && gallery && rating && p !== 'soon') {
+    links.hidden = false;
+    $('galleryLink').href = url(gallery);
+    $('ratingLink').href = url(rating);
   }
 
   if (rules) $('rulesLink').href = rules;
   if (CONFIG.voteLimitText) $('voteLimit').textContent = CONFIG.voteLimitText;
 }
 
-function init() {
+async function init() {
+  await loadServiceConfig();
   const p = phase();
   renderStatus(p);
   renderTimeline(p);

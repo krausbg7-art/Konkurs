@@ -1,0 +1,39 @@
+# Service + PostgreSQL + video storage on the server disk.
+# Start:  docker compose up -d --build
+# Admin:  docker compose exec app node src/cli/create-admin.js <login>
+# HTTPS and the domain are handled by nginx on the host (see deploy/nginx.conf).
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://konkurs:${POSTGRES_PASSWORD}@db:5432/konkurs
+      TRUST_PROXY: "true"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - videos:/data/videos
+      # Sber ID client certificate (.p12) and CA, read-only
+      - ./secrets:/secrets:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: konkurs
+      POSTGRES_USER: konkurs
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U konkurs"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  videos:
