@@ -32,12 +32,12 @@ export function loadConfig(overrides = {}) {
 
     contest: {
       title: str('CONTEST_TITLE', 'Битва компаний за салют'),
-      registrationStart: str('REGISTRATION_START', '2026-11-11T00:00:00+03:00'),
-      registrationEnd: str('REGISTRATION_END', '2026-11-25T23:59:59+03:00'),
-      videoUploadEnd: str('VIDEO_UPLOAD_END', '') || str('REGISTRATION_END', '2026-11-25T23:59:59+03:00'),
-      votingStart: str('VOTING_START', '2026-11-26T00:00:00+03:00'),
-      votingEnd: str('VOTING_END', '2026-12-05T23:59:59+03:00'),
-      resultsDate: str('RESULTS_DATE', '2026-12-09T12:00:00+03:00'),
+      registrationStart: str('REGISTRATION_START', '2026-11-28T00:00:00+03:00'),
+      registrationEnd: str('REGISTRATION_END', '2026-12-10T23:59:59+03:00'),
+      videoUploadEnd: str('VIDEO_UPLOAD_END', '') || str('REGISTRATION_END', '2026-12-10T23:59:59+03:00'),
+      votingStart: str('VOTING_START', '2026-12-02T00:00:00+03:00'),
+      votingEnd: str('VOTING_END', '2026-12-16T23:59:59+03:00'),
+      resultsDate: str('RESULTS_DATE', '2026-12-17T12:00:00+03:00'),
       prizesBy: str('PRIZES_BY', '2026-12-25T23:59:59+03:00'),
       votePoints: num('VOTE_POINTS', 10),
       videoBonus: num('VIDEO_BONUS', 500),
@@ -123,8 +123,11 @@ function validate(cfg) {
 
 export const t = (s) => new Date(s);
 
+// Registration and voting may overlap (2–10 December): 'both' means both are open.
+// The rules themselves use isRegistrationOpen / isVotingOpen, each on its own window.
 export function phase(contest, now) {
   if (now < t(contest.registrationStart)) return 'soon';
+  if (now <= t(contest.registrationEnd) && now >= t(contest.votingStart)) return 'both';
   if (now <= t(contest.registrationEnd)) return 'register';
   if (now < t(contest.votingStart)) return 'pause';
   if (now <= t(contest.votingEnd)) return 'vote';

@@ -226,7 +226,7 @@ test('registration window and rejection with reason', async () => {
   assert.deepEqual(after, { status: 'pending', reject_reason: null });
 
   // After registration closes the form is gone.
-  setTime(AT.pause);
+  setTime(AT.voting);
   const late = new Client(app);
   await late.login('cap-late', null);
   assert.match((await late.get('/my')).body, /Регистрация закрыта/);
@@ -345,4 +345,27 @@ test('failed conversion is reported and a new upload is allowed', async () => {
   assert.equal(r.headers.location, '/my?ok=video');
   await app.transcoder.idle();
   assert.equal((await pool.query("select count(*)::int n from videos where company_id = $1 and status = 'pending'", [co.id])).rows[0].n, 1);
+});
+
+test('2–10 December: registration and voting are open at the same time', async () => {
+  const { app, pool, setTime, cfg } = env;
+  setTime(AT.both);
+  const { cap, company: co } = await registerCompany('cap-overlap', { name: 'Поздние' });
+  assert.equal(co.status, 'pending');
+  const admin = new Client(app);
+  const acsrf = await admin.adminLogin(pool);
+  await admin.post(`/admin/companies/${co.id}/approve`, { _csrf: acsrf });
+
+  // the video can still be uploaded while voting is already running
+  assert.equal((await cap.uploadVideo('short.mp4')).headers.location, '/my?ok=video');
+  await app.transcoder.idle();
+
+  const voter = new Client(app);
+  await voter.login('overlap-voter', '+79990001234', `/c/${co.slug}`);
+  const csrf = await voter.csrf(`/c/${co.slug}`);
+  assert.match((await voter.post(`/c/${co.slug}/vote`, { _csrf: csrf })).body, /голос принят/);
+
+  const api = JSON.parse((await new Client(app).get('/api/contest')).body);
+  assert.equal(api.phase, 'both');
+  assert.equal(api.votingStart, cfg.contest.votingStart);
 });

@@ -7,11 +7,11 @@ const METRIKA_ID = 20920177;
 
 /* Всё, что нужно менять перед запуском, — здесь. Даты — по московскому времени (UTC+3). */
 const CONFIG = {
-  registrationStart: '2026-11-11T00:00:00+03:00',
-  registrationEnd:   '2026-11-25T23:59:59+03:00',
-  votingStart:       '2026-11-26T00:00:00+03:00',
-  votingEnd:         '2026-12-05T23:59:59+03:00',
-  resultsDate:       '2026-12-09T12:00:00+03:00',
+  registrationStart: '2026-11-28T00:00:00+03:00',
+  registrationEnd:   '2026-12-10T23:59:59+03:00',
+  votingStart:       '2026-12-02T00:00:00+03:00',
+  votingEnd:         '2026-12-16T23:59:59+03:00',
+  resultsDate:       '2026-12-17T12:00:00+03:00',
   prizesBy:          '2026-12-25T23:59:59+03:00',
 
   /* Адрес сервиса конкурса. Пусто — тот же сайт, что и эта страница.
@@ -49,7 +49,7 @@ async function loadServiceConfig() {
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 
-/* Для проверки этапов без ожидания дат: ?now=2026-11-27T12:00:00+03:00 */
+/* Для проверки этапов без ожидания дат: ?now=2026-12-05T12:00:00+03:00 */
 const now = params.get('now') ? new Date(params.get('now')) : new Date();
 const t = (s) => new Date(s);
 
@@ -58,6 +58,8 @@ const fmtTime = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long'
 
 function phase() {
   if (now < t(CONFIG.registrationStart)) return 'soon';
+  /* регистрация и голосование могут идти одновременно */
+  if (now <= t(CONFIG.registrationEnd) && now >= t(CONFIG.votingStart)) return 'both';
   if (now <= t(CONFIG.registrationEnd))  return 'register';
   if (now < t(CONFIG.votingStart))       return 'pause';
   if (now <= t(CONFIG.votingEnd))        return 'vote';
@@ -68,6 +70,7 @@ function phase() {
 const PHASES = {
   soon:     { label: 'Скоро старт',           date: () => `Регистрация откроется ${fmt.format(t(CONFIG.registrationStart))}` },
   register: { label: 'Идёт регистрация',       date: () => `До ${fmtTime.format(t(CONFIG.registrationEnd))}` },
+  both:     { label: 'Идут регистрация и голосование', date: () => `Регистрация до ${fmtTime.format(t(CONFIG.registrationEnd))}, голосование до ${fmtTime.format(t(CONFIG.votingEnd))}` },
   pause:    { label: 'Регистрация закрыта',    date: () => `Голосование начнётся ${fmt.format(t(CONFIG.votingStart))}` },
   vote:     { label: 'Идёт голосование',       date: () => `До ${fmtTime.format(t(CONFIG.votingEnd))}` },
   count:    { label: 'Подводим итоги',         date: () => `Результаты ${fmt.format(t(CONFIG.resultsDate))}` },
@@ -77,6 +80,7 @@ const PHASES = {
 const REGISTER_LEAD = {
   soon:     () => `Регистрация откроется ${fmt.format(t(CONFIG.registrationStart))}. Подготовьте название компании, короткий рассказ и видео до 60 секунд.`,
   register: () => `Войдите через VK ID или Сбер ID и заполните анкету. Регистрация открыта до ${fmtTime.format(t(CONFIG.registrationEnd))}.`,
+  both:     () => `Голосование уже идёт, а регистрация открыта до ${fmtTime.format(t(CONFIG.registrationEnd))}. Войдите через VK ID или Сбер ID и заполните анкету — после проверки компания сразу начнёт собирать голоса.`,
   pause:    () => 'Регистрация закрыта. Голосование начнётся в назначенный день.',
   vote:     () => 'Регистрация закрыта. Чтобы проголосовать, откройте ссылку на карточку компании, которой поделился её капитан.',
   count:    () => 'Голосование завершено. Проверяем голоса и подводим итоги.',
@@ -111,12 +115,12 @@ function renderTimeline(p) {
     ['Объявление итогов',            fmt.format(t(CONFIG.resultsDate)),                                                         'count'],
     ['Вручение призов',              `до ${fmt.format(t(CONFIG.prizesBy))}`,                                                    'done']
   ];
-  const order = ['soon', 'register', 'pause', 'vote', 'count', 'done'];
+  const order = ['soon', 'register', 'both', 'pause', 'vote', 'count', 'done'];
   const idx = (x) => order.indexOf(x);
 
   $('timeline').innerHTML = rows.map(([title, when, key]) => {
     let state = 'future';
-    if (key === p || (key === 'register' && p === 'register') || (key === 'vote' && p === 'vote')) state = 'now';
+    if (key === p || (p === 'both' && (key === 'register' || key === 'vote'))) state = 'now';
     else if (idx(p) > idx(key)) state = 'past';
     return `<li data-state="${state}"><span>${title}</span><span>${when}</span></li>`;
   }).join('');
@@ -124,7 +128,7 @@ function renderTimeline(p) {
 
 function setupButtons(p) {
   const { loginVk, loginSber, rules, gallery, rating } = CONFIG.endpoints;
-  const canRegister = p === 'register';
+  const canRegister = p === 'register' || p === 'both';
 
   [['loginVk', loginVk], ['loginSber', loginSber]].forEach(([id, link]) => {
     const a = $(id);
@@ -138,7 +142,7 @@ function setupButtons(p) {
   });
 
   const main = $('ctaMain');
-  if (p === 'vote' && gallery) {
+  if ((p === 'vote' || p === 'both') && gallery) {
     main.textContent = 'Выбрать компанию и проголосовать';
     main.href = url(gallery);
   } else if ((p === 'count' || p === 'done') && rating) {

@@ -10,12 +10,12 @@ import { hashPassword } from '../src/security.js';
 export const TEST_DB = process.env.TEST_DATABASE_URL || 'postgres://postgres@localhost:5433/konkurs_test';
 
 export const AT = {
-  beforeRegistration: '2026-11-05T12:00:00+03:00',
-  registration: '2026-11-15T12:00:00+03:00',
-  pause: '2026-11-25T23:59:59.500+03:00',
-  voting: '2026-11-27T12:00:00+03:00',
-  votingLastSecond: '2026-12-05T23:59:59+03:00',
-  afterVoting: '2026-12-06T00:00:00+03:00',
+  beforeRegistration: '2026-11-26T12:00:00+03:00',
+  registration: '2026-11-30T12:00:00+03:00',        // registration only
+  both: '2026-12-05T12:00:00+03:00',                // registration and voting at once
+  voting: '2026-12-12T12:00:00+03:00',              // voting only, registration closed
+  votingLastSecond: '2026-12-16T23:59:59+03:00',
+  afterVoting: '2026-12-17T00:00:00+03:00',
 };
 
 export async function setup() {

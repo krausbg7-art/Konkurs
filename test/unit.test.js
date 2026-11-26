@@ -38,14 +38,17 @@ test('company form validation', () => {
 
 test('contest phases follow Moscow time boundaries', () => {
   const c = {
-    registrationStart: '2026-11-11T00:00:00+03:00', registrationEnd: '2026-11-25T23:59:59+03:00',
-    votingStart: '2026-11-26T00:00:00+03:00', votingEnd: '2026-12-05T23:59:59+03:00', resultsDate: '2026-12-09T12:00:00+03:00',
+    registrationStart: '2026-11-28T00:00:00+03:00', registrationEnd: '2026-12-10T23:59:59+03:00',
+    votingStart: '2026-12-02T00:00:00+03:00', votingEnd: '2026-12-16T23:59:59+03:00', resultsDate: '2026-12-17T12:00:00+03:00',
   };
-  assert.equal(phase(c, new Date('2026-11-10T20:59:59Z')), 'soon');
-  assert.equal(phase(c, new Date('2026-11-10T21:00:00Z')), 'register');
-  assert.equal(phase(c, new Date('2026-11-25T21:00:00Z')), 'vote');
-  assert.equal(phase(c, new Date('2026-12-05T20:59:59Z')), 'vote');
-  assert.equal(phase(c, new Date('2026-12-05T21:00:00Z')), 'count');
+  assert.equal(phase(c, new Date('2026-11-27T20:59:59Z')), 'soon');
+  assert.equal(phase(c, new Date('2026-11-27T21:00:00Z')), 'register');
+  assert.equal(phase(c, new Date('2026-12-01T21:00:00Z')), 'both');      // 2 Dec 00:00 MSK
+  assert.equal(phase(c, new Date('2026-12-10T20:59:59Z')), 'both');      // 10 Dec 23:59:59 MSK
+  assert.equal(phase(c, new Date('2026-12-10T21:00:00Z')), 'vote');
+  assert.equal(phase(c, new Date('2026-12-16T20:59:59Z')), 'vote');
+  assert.equal(phase(c, new Date('2026-12-16T21:00:00Z')), 'count');
+  assert.equal(phase(c, new Date('2026-12-17T09:00:00Z')), 'done');
 });
 
 test('html escapes by default', () => {
