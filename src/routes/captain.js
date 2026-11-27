@@ -10,6 +10,9 @@ import { randomSlug, randomToken, normalizePhone } from '../security.js';
 import { probe, checkDuration, ALLOWED_EXT } from '../video.js';
 
 const LIMITS = { name: [2, 100], city: [2, 80], story: [20, 1000] };
+
+// A document link, or nothing while the document is not published yet.
+const docLink = (url, text) => (url ? html`<a href="${url}" target="_blank" rel="noopener">${text}</a>` : '');
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function validateCompany(input) {
@@ -66,7 +69,8 @@ export default async function captainRoutes(app, { ctx }) {
       </fieldset>
       <label class="check">${err('publish_consent')}
         <input type="checkbox" name="publish_consent" value="yes" required>
-        <span>Я вправе действовать от имени компании и согласен на публикацию названия, города, рассказа и видео на сайте конкурса.</span>
+        <span>Я вправе действовать от имени компании и согласен на публикацию названия, города, рассказа и видео на сайте конкурса.
+          ${docLink(cfg.docs.rulesMaterials, 'Права на материалы — в Положении о конкурсе')}</span>
       </label>
       <button class="btn btn--primary">${action === 'create' ? 'Отправить заявку' : 'Отправить заново'}</button>
     </form>`;
@@ -94,6 +98,11 @@ export default async function captainRoutes(app, { ctx }) {
       ${lastProblem?.status === 'failed' ? html`<p class="notice notice--error">Не получилось обработать видео. Попробуйте загрузить его ещё раз или сохранить в другом формате.</p>` : ''}
       ${canUpload
         ? html`<form method="post" action="/my/video?_csrf=${encodeURIComponent(csrfToken(req))}" enctype="multipart/form-data" class="form">
+            <label class="check">
+              <input type="checkbox" name="video_rights" value="yes" required>
+              <span>У меня есть согласия всех людей в видео на его публикацию; в видео нет чужой музыки и рекламы.
+                ${docLink(cfg.docs.videoConsent, 'Форма согласия для людей в видео')}</span>
+            </label>
             <label>Файл (${ALLOWED_EXT.join(', ')}, до ${cfg.video.maxMegabytes} МБ)
               <input type="file" name="video" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm,.m4v" required></label>
             <button class="btn btn--primary">Загрузить</button>
@@ -209,6 +218,11 @@ export default async function captainRoutes(app, { ctx }) {
 
     const file = await req.file();
     if (!file) return fail('Выберите файл.');
+    // Fields sent before the file are available here; the checkbox comes first in the form.
+    if (file.fields.video_rights?.value !== 'yes') {
+      file.file.resume();
+      return fail('Подтвердите, что у вас есть согласия всех людей в видео и права на музыку.');
+    }
     const ext = path.extname(file.filename || '').slice(1).toLowerCase();
     if (!ALLOWED_EXT.includes(ext)) {
       file.file.resume();
@@ -231,8 +245,8 @@ export default async function captainRoutes(app, { ctx }) {
     let inserted = 0;
     try {
       const r = await pool.query(
-        `insert into videos (company_id, file_name, mime, size_bytes, duration_sec, status)
-         select $1, $2, $3, $4, $5, 'processing'
+        `insert into videos (company_id, file_name, mime, size_bytes, duration_sec, status, rights_confirmed_at)
+         select $1, $2, $3, $4, $5, 'processing', now()
           where not exists (select 1 from videos where company_id = $1 and status = 'approved')
          returning id`,
         [company.id, finalName, file.mimetype, size, info.duration.toFixed(2)],

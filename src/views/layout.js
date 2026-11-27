@@ -1,6 +1,6 @@
 import { html, raw } from '../html.js';
 
-export function layout({ title, contestTitle, body, csrf, account, admin = false, head = '' }) {
+export function layout({ title, contestTitle, body, csrf, account, admin = false, head = '', docs = {}, organizer = {} }) {
   const fullTitle = title ? `${title} — ${contestTitle}` : contestTitle;
   return html`<!DOCTYPE html>
 <html lang="ru">
@@ -33,10 +33,7 @@ ${raw(head)}
 <main class="app-main">
 ${body}
 </main>
-${admin ? '' : html`<footer class="foot">
-  <p>Конкурс проводится ООО «ПОГНАЛИ ФЕЕРИТЬ». Реквизиты и Положение — в разделе «Правила конкурса» на <a href="/#rules">странице конкурса</a>.</p>
-  <p>Имена и фото голосующих не публикуются.</p>
-</footer>`}
+${admin ? '' : footer(docs, organizer)}
 </body>
 </html>`;
 }
@@ -48,3 +45,14 @@ export const simpleBody = (title, text, back) => html`<section class="k-section"
   <p>${text}</p>
   ${back ? html`<p><a class="btn btn--ghost" href="${back}">Назад</a></p>` : ''}
 </section>`;
+
+// Footer of every public page: documents, organizer, where to write.
+export function footer(docs, org) {
+  const link = (url, text) => (url ? html`<a href="${url}" target="_blank" rel="noopener">${text}</a>` : text);
+  return html`<footer class="foot">
+  <p>${link(docs.rules || '/#rules', 'Положение о конкурсе')} · ${link(docs.privacy, 'Политика обработки персональных данных')}</p>
+  <p>Организатор: ${org.name}, ОГРН ${org.ogrn}.
+    Адрес для обращений: ${org.address}${org.email ? html`, e-mail: <a href="mailto:${org.email}">${org.email}</a>` : ''}.</p>
+  <p>Имена и фото голосующих не публикуются.</p>
+</footer>`;
+}

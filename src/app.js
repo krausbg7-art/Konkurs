@@ -51,6 +51,8 @@ export async function buildApp({ cfg, pool, now = () => new Date(), logger = tru
       return layout({
         title, body, admin, head,
         contestTitle: cfg.contest.title,
+        docs: cfg.docs,
+        organizer: cfg.organizer,
         csrf: req.session?.csrf,
         account: req.session?.account_id,
       }).toString();

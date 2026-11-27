@@ -25,8 +25,12 @@ const CONFIG = {
     loginSber: '/login/sber?next=/my',
     gallery:   '/companies',
     rating:    '/rating',
-    rules:     ''    // ссылка на опубликованное Положение (если отдельным документом)
+    rules:     '',   // ссылка на опубликованное Положение (если отдельным документом)
+    privacy:   ''    // ссылка на Политику обработки персональных данных
   },
+
+  /* Организатор для подвала; сервис отдаёт актуальные данные в /api/contest. */
+  organizer: null,
 
   voteLimitText: 'Один голос на человека за весь конкурс — за одну компанию. Голосовать можно через VK ID или Сбер ID; для голоса нужен подтверждённый номер телефона в аккаунте. Повторный голос с тем же номером через другой сервис не засчитывается.'
 };
@@ -43,6 +47,7 @@ async function loadServiceConfig() {
       if (s[k]) CONFIG[k] = s[k];
     }
     if (s.endpoints) Object.assign(CONFIG.endpoints, Object.fromEntries(Object.entries(s.endpoints).filter(([k, v]) => v || k.startsWith('login'))));
+    if (s.organizer) CONFIG.organizer = s.organizer;
   } catch { /* лендинг открыт без сервиса — работаем на значениях из CONFIG */ }
 }
 
@@ -160,7 +165,20 @@ function setupButtons(p) {
     $('ratingLink').href = url(rating);
   }
 
-  if (rules) $('rulesLink').href = rules;
+  if (rules) {
+    $('rulesLink').href = rules;
+    $('footRules').href = rules;
+  }
+  const { privacy } = CONFIG.endpoints;
+  if (privacy) $('footPrivacy').href = privacy;
+
+  const org = CONFIG.organizer;
+  if (org) {
+    if (org.name) $('footOrgName').textContent = org.name;
+    if (org.ogrn) $('footOrgOgrn').textContent = org.ogrn;
+    if (org.address) $('footOrgAddress').textContent = org.address;
+    if (org.email) $('footOrgEmail').textContent = `, e-mail: ${org.email}`;
+  }
   if (CONFIG.voteLimitText) $('voteLimit').textContent = CONFIG.voteLimitText;
 }
 

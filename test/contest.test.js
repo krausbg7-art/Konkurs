@@ -369,3 +369,50 @@ test('2–10 December: registration and voting are open at the same time', async
   assert.equal(api.phase, 'both');
   assert.equal(api.votingStart, cfg.contest.votingStart);
 });
+
+test('login needs two separate consents: personal data and the rules', async () => {
+  const { app, pool } = env;
+  const c = new Client(app);
+  const page = (await c.get('/login/dev?next=/my')).body;
+  assert.match(page, /name="consent"/);
+  assert.match(page, /name="rules"/);
+  assert.match(page, /Политике обработки персональных данных/);
+  const csrf = await c.csrf('/login/dev?next=/my');
+  for (const [form, missing] of [
+    [{ consent: 'yes' }, /согласие с Положением/],
+    [{ rules: 'yes' }, /согласие на обработку персональных данных/],
+  ]) {
+    const r = await c.post('/login/dev', { _csrf: csrf, next: '/my', ...form });
+    assert.equal(r.statusCode, 400);
+    assert.match(r.body, missing);
+  }
+  await c.login('two-consents', '+79990002222');
+  const acc = (await pool.query("select consent_at, rules_accepted_at from accounts where provider_user_id = 'two-consents'")).rows[0];
+  assert.ok(acc.consent_at && acc.rules_accepted_at);
+});
+
+test('video is refused without confirming consents of people in it', async () => {
+  const { app, pool, setTime } = env;
+  setTime(AT.registration);
+  const { cap, company: co } = await registerCompany('cap-rights', { name: 'Права' });
+  const page = (await cap.get('/my')).body;
+  assert.match(page, /name="video_rights"/);
+  const r = await cap.uploadVideo('short.mp4', { rights: false });
+  assert.equal(r.statusCode, 400);
+  assert.match(r.body, /согласия всех людей в видео/);
+  assert.equal((await pool.query('select count(*)::int n from videos where company_id = $1', [co.id])).rows[0].n, 0);
+  assert.equal((await cap.uploadVideo('short.mp4')).headers.location, '/my?ok=video');
+  await app.transcoder.idle();
+  const v = (await pool.query('select rights_confirmed_at from videos where company_id = $1', [co.id])).rows[0];
+  assert.ok(v.rights_confirmed_at);
+});
+
+test('every public page has the footer with documents and organizer', async () => {
+  const body = (await new Client(env.app).get('/companies')).body;
+  assert.match(body, /Положение о конкурсе/);
+  assert.match(body, /Политика обработки персональных данных/);
+  assert.match(body, /ОГРН 1207700158995/);
+  assert.match(body, /Рузаевка/);
+  const api = JSON.parse((await new Client(env.app).get('/api/contest')).body);
+  assert.equal(api.organizer.ogrn, '1207700158995');
+});

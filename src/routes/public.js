@@ -25,7 +25,8 @@ export default async function publicRoutes(app, { ctx }) {
       resultsDate: c.resultsDate,
       prizesBy: c.prizesBy,
       phase: phase(c, ctx.now()),
-      endpoints: { loginVk: p('vk'), loginSber: p('sber'), rules: cfg.docs.rules, gallery: '/companies', rating: '/rating' },
+      endpoints: { loginVk: p('vk'), loginSber: p('sber'), rules: cfg.docs.rules, privacy: cfg.docs.privacy, consent: cfg.docs.consent, gallery: '/companies', rating: '/rating' },
+      organizer: cfg.organizer,
     };
   });
 

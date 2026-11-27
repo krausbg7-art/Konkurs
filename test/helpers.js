@@ -66,7 +66,7 @@ export class Client {
   // Full login through the consent page and the dev provider.
   async login(uid, phone, next = '/my') {
     const csrf = await this.csrf(`/login/dev?next=${encodeURIComponent(next)}`);
-    const r1 = await this.post('/login/dev', { _csrf: csrf, consent: 'yes', next });
+    const r1 = await this.post('/login/dev', { _csrf: csrf, consent: 'yes', rules: 'yes', next });
     const state = new URL(r1.headers.location, 'http://x').searchParams.get('state');
     const q = new URLSearchParams({ state, uid, ...(phone ? { phone } : {}) });
     const r2 = await this.get(`/auth/dev/callback?${q}`);
@@ -85,11 +85,13 @@ export class Client {
     return this.csrf('/admin');
   }
 
-  async uploadVideo(fixture) {
+  async uploadVideo(fixture, { rights = true } = {}) {
     const csrf = await this.csrf('/my');
     const file = readFileSync(new URL(`./fixtures/${fixture}`, import.meta.url));
     const boundary = '----konkurs' + Math.random().toString(16).slice(2);
     const payload = Buffer.concat([
+      // the rights checkbox comes before the file, as in the real form
+      Buffer.from(rights ? `--${boundary}\r\nContent-Disposition: form-data; name="video_rights"\r\n\r\nyes\r\n` : ''),
       Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="video"; filename="${fixture}"\r\nContent-Type: video/mp4\r\n\r\n`),
       file,
       Buffer.from(`\r\n--${boundary}--\r\n`),

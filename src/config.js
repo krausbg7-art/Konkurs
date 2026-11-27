@@ -60,9 +60,21 @@ export function loadConfig(overrides = {}) {
     // Links to documents approved by the lawyer. Empty = link is hidden.
     docs: {
       rules: str('RULES_URL'),
+      // Section of the rules about rights to texts and videos (falls back to the rules link).
+      rulesMaterials: str('RULES_MATERIALS_URL') || str('RULES_URL'),
       privacy: str('PRIVACY_URL'),
       consent: str('CONSENT_URL'),
+      // Form that people appearing in a video sign (consent to publish their image).
+      videoConsent: str('VIDEO_CONSENT_URL'),
       consentVersion: str('CONSENT_VERSION', 'draft'),
+    },
+
+    // Shown in the footer of every page.
+    organizer: {
+      name: str('ORGANIZER_NAME', 'ООО «Погнали феерить»'),
+      ogrn: str('ORGANIZER_OGRN', '1207700158995'),
+      address: str('ORGANIZER_ADDRESS', '431440, Республика Мордовия, г. Рузаевка, ул. Ленина, д. 24, пом. 3'),
+      email: str('CONTACT_EMAIL'),
     },
 
     phoneHashSecret: str('PHONE_HASH_SECRET') || (production ? '' : 'dev-only-phone-hash-secret'),

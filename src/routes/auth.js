@@ -22,10 +22,13 @@ export default async function authRoutes(app, { ctx }) {
         <input type="hidden" name="next" value="${next}">
         <label class="check">
           <input type="checkbox" name="consent" value="yes" required>
-          <span>Даю ${doc(d.consent, 'согласие на обработку персональных данных')}
-            и принимаю ${doc(d.privacy, 'политику конфиденциальности')}
-            и ${doc(d.rules, 'Положение о конкурсе')}.</span>
+          <span>Даю ${doc(d.consent, 'согласие на обработку персональных данных')}</span>
         </label>
+        <label class="check">
+          <input type="checkbox" name="rules" value="yes" required>
+          <span>Ознакомлен с ${doc(d.rules, 'Положением о конкурсе')} и принимаю его</span>
+        </label>
+        <p class="k-note">Как мы обрабатываем данные — в ${doc(d.privacy, 'Политике обработки персональных данных')}.</p>
         <button class="btn btn--primary">Продолжить</button>
       </form>
     </section>`;
@@ -50,8 +53,15 @@ export default async function authRoutes(app, { ctx }) {
     if (!p) return reply.code(404).send();
     if (!checkCsrf(req, req.body?._csrf)) return reply.code(403).send('Bad CSRF token');
     const next = safeNext(req.body?.next, '/my');
-    if (req.body?.consent !== 'yes') {
-      return ctx.page(req, reply, { status: 400, title: 'Нужно согласие', body: consentBody(req, p, next, 'Отметьте согласие, чтобы продолжить.') });
+    const missing = [
+      req.body?.consent !== 'yes' && 'согласие на обработку персональных данных',
+      req.body?.rules !== 'yes' && 'согласие с Положением о конкурсе',
+    ].filter(Boolean);
+    if (missing.length) {
+      return ctx.page(req, reply, {
+        status: 400, title: 'Нужно согласие',
+        body: consentBody(req, p, next, `Отметьте ${missing.join(' и ')}, чтобы продолжить.`),
+      });
     }
     const { verifier, challenge } = pkcePair();
     const state = randomToken(24);
@@ -95,12 +105,12 @@ export default async function authRoutes(app, { ctx }) {
 
     const hash = profile.phone ? phoneHash(profile.phone, cfg.phoneHashSecret) : null;
     const { rows } = await pool.query(
-      `insert into accounts (provider, provider_user_id, phone_hash, consent_at, consent_version, consent_ip)
-       values ($1, $2, $3, $4, $5, $6)
+      `insert into accounts (provider, provider_user_id, phone_hash, consent_at, consent_version, consent_ip, rules_accepted_at)
+       values ($1, $2, $3, $4, $5, $6, $4)
        on conflict (provider, provider_user_id) do update
          set phone_hash = coalesce(excluded.phone_hash, accounts.phone_hash),
              consent_at = excluded.consent_at, consent_version = excluded.consent_version,
-             consent_ip = excluded.consent_ip, last_login_at = now()
+             consent_ip = excluded.consent_ip, rules_accepted_at = excluded.rules_accepted_at, last_login_at = now()
        returning id`,
       [p.id, profile.providerUserId, hash, o.consentAt, cfg.docs.consentVersion, o.consentIp],
     );

@@ -142,8 +142,8 @@
     <a class="btn btn--primary k-btn-sber" id="loginSber" href="#" data-track="k-login-sber">Войти через Сбер ID</a>
   </div>
   <p class="k-note">
-    Регистрируясь, вы принимаете <a id="rulesLink" href="#rules">Положение о конкурсе</a>
-    и даёте согласие на обработку персональных данных. Контакты капитана не публикуются.
+    При входе вы отдельно дадите согласие на обработку персональных данных и подтвердите,
+    что ознакомлены с <a id="rulesLink" href="#rules">Положением о конкурсе</a>. Контакты капитана не публикуются.
   </p>
 </section>
 
@@ -186,11 +186,14 @@
 </main>
 
 <footer class="foot">
-  <p>Конкурс проводится ООО «ПОГНАЛИ ФЕЕРИТЬ». Реквизиты и Положение — в разделе «Правила конкурса».</p>
+  <p><a id="footRules" href="#rules" data-track="footer-rules">Положение о конкурсе</a> ·
+    <a id="footPrivacy" href="#rules" data-track="footer-privacy">Политика обработки персональных данных</a></p>
+  <p>Организатор: <span id="footOrgName">ООО «Погнали феерить»</span>, ОГРН <span id="footOrgOgrn">1207700158995</span>.
+    Адрес для обращений: <span id="footOrgAddress">431440, Республика Мордовия, г. Рузаевка, ул. Ленина, д. 24, пом. 3</span><span id="footOrgEmail"></span>.</p>
   <p>Пиротехника продаётся лицам старше 18 лет. Вся продукция сертифицирована.</p>
   <p><a href="https://www.feeriya.ru/" data-track="footer-home">Феерия.ру</a> · 1997–2026</p>
 </footer>
 
-<script src="konkurs.js?v=3" type="module"></script>
+<script src="konkurs.js?v=4" type="module"></script>
 </body>
 </html>
